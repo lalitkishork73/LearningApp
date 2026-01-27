@@ -1,6 +1,8 @@
 export type RootStackParamList = {
-  Topics: undefined;
-  VideoPlayer: { topicId?: string } | undefined;
+  Splash: undefined;
+  Home: undefined;
+  VideoTopics: undefined;
+  VideoPlayer: { topicId?: string };
   GamesList: undefined;
   GamePlayer: { gameId: string };
 };

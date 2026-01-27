@@ -13,6 +13,9 @@ type VideoLearningState = {
   triggerActivity: (minute: number) => void;
   completeActivity: () => void;
   setDuration: (duration: number) => void;
+
+  currentVideoId: string;
+  setCurrentVideo: (id: string) => void;
 };
 
 export const useVideoLearningStore = create<VideoLearningState>(set => ({
@@ -22,6 +25,18 @@ export const useVideoLearningStore = create<VideoLearningState>(set => ({
   checkpointsCompleted: [],
   activeCheckpoint: null,
   showActivityModal: false,
+
+  currentVideoId: '1',
+
+  setCurrentVideo: id =>
+    set({
+      currentVideoId: id,
+      checkpointsCompleted: [],
+      activeCheckpoint: null,
+      showActivityModal: false,
+      currentTime: 0,
+      isPlaying: true,
+    }),
 
   setPlaying: val => set({ isPlaying: val }),
   setDuration: duration => set({ duration }),
