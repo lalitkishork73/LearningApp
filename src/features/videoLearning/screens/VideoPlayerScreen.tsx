@@ -5,34 +5,26 @@ import { useVideoLearningStore } from '../store/videoLearningStore'
 import { videoController } from '../logic/videoLearningController'
 import ActivityModal from '../components/ActivityModal'
 import { VIDEO_LIST } from '../data/mockData'
-import VideoControls from '../components/VideoControls'
 
 const { width } = Dimensions.get('window')
-const PLAYER_HEIGHT = width * 0.56 // 16:9 ratio
+const PLAYER_HEIGHT = width * 0.56
+type video = any
 
 const VideoPlayerScreen = () => {
-    const { isPlaying, setDuration, currentVideoId, setCurrentVideo } = useVideoLearningStore()
-    const [isFullscreen, setIsFullscreen] = React.useState(false)
-    const playerRef = useRef<Video>(null)
+    const isPlaying = useVideoLearningStore(state => state.isPlaying)
+    const setDuration = useVideoLearningStore(state => state.setDuration)
+    const currentVideoId = useVideoLearningStore(state => state.currentVideoId)
+    const setCurrentVideo = useVideoLearningStore(state => state.setCurrentVideo)
 
+    const playerRef = useRef<video>(null)
     const currentVideo = VIDEO_LIST.find(v => v.id === currentVideoId)!
 
-    const handleSeek = (time: number) => {
-        playerRef.current?.seek(time)
+
+    console.log('render')
+
+    const handleSeek = (data: any) => {
+        videoController.handleSeek(data.currentTime, playerRef.current)
     }
-
-
-    console.log("render")
-    const toggleFullscreen = () => {
-        setIsFullscreen(!isFullscreen)
-    }
-
-    
-    useEffect(() => {
-        console.log('Fullscreen:', isFullscreen)
-    }, [isFullscreen])
-
-
 
     useEffect(() => {
         videoController.initAppStateListener()
@@ -48,19 +40,15 @@ const VideoPlayerScreen = () => {
                 style={styles.video}
                 paused={!isPlaying}
                 resizeMode="contain"
-                // controls
-                // {...(isFullscreen ? { controls: true } : { controls: false })}
-                fullscreen={isFullscreen}
+                controls
                 onLoad={(data) => setDuration(data.duration)}
                 onProgress={(data) => videoController.handleProgress(data.currentTime)}
-                onSeek={(data) => videoController.handleSeek(data.currentTime)}
+                onSeek={(data) => handleSeek(data)}
             />
-
-            <VideoControls onSeek={handleSeek} onToggleFullscreen={toggleFullscreen} />
 
             <ActivityModal />
 
-            {/* Other Videos List */}
+            {/* Other Videos */}
             <FlatList
                 data={VIDEO_LIST.filter(v => v.id !== currentVideoId)}
                 keyExtractor={(item) => item.id}
@@ -72,8 +60,6 @@ const VideoPlayerScreen = () => {
                     </TouchableOpacity>
                 )}
             />
-
-           
         </View>
     )
 }

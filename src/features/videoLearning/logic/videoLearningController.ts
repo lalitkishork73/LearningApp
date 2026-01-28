@@ -1,94 +1,88 @@
+import { AppState } from 'react-native';
 import { useVideoLearningStore } from '../store/videoLearningStore';
-import { AppState } from 'react-native'
 
-export const handleVideoProgress = (time: number) => {
-  const { checkpointsCompleted, activeCheckpoint, triggerActivity } =
-    useVideoLearningStore.getState();
-
-  const minute = Math.floor(time / 60);
-
-  if (
-    minute > 0 &&
-    !checkpointsCompleted.includes(minute) &&
-    activeCheckpoint !== minute
-  ) {
-    triggerActivity(minute);
-  }
-};
-
-
-let lastKnownTime = 0
-let appState = AppState.currentState
+let appState = AppState.currentState;
+let listenerInitialized = false;
 
 export const videoController = {
-    /** Called every second from onProgress */
-    handleProgress: (time: number) => {
-        const {
-            checkpointsCompleted,
-            activeCheckpoint,
-            triggerActivity,
-            updateTime,
-            duration,
-        } = useVideoLearningStore.getState()
+  handleProgress: (time: number) => {
+    const {
+      checkpointsCompleted,
+      activeCheckpoint,
+      triggerActivity,
+      updateTime,
+      duration,
+    } = useVideoLearningStore.getState();
 
-        updateTime(time)
-        lastKnownTime = time
+    updateTime(time);
 
-        // If video shorter than 60 sec, no activity required
-        if (duration < 60) return
+    if (duration < 60 || activeCheckpoint !== null) return;
 
-        const minute = Math.floor(time / 60)
+    const minute = Math.floor(time / 60);
 
-        if (
-            minute > 0 &&
-            !checkpointsCompleted.includes(minute) &&
-            activeCheckpoint !== minute
-        ) {
-            triggerActivity(minute)
-        }
-    },
+    if (minute > 0 && !checkpointsCompleted.includes(minute)) {
+      const type = Math.random() > 0.5 ? 'quiz' : 'game';
+      triggerActivity(minute, type);
+    }
+  },
 
-    /** Called when user seeks manually */
-    handleSeek: (seekTime: number) => {
-        const { checkpointsCompleted, triggerActivity } =
-            useVideoLearningStore.getState()
+  handleSeek: (seekTime: number, playerRef?: any) => {
+  const {
+    checkpointsCompleted,
+    activeCheckpoint,
+    triggerActivity,
+    updateTime,
+  } = useVideoLearningStore.getState()
 
-        const targetMinute = Math.floor(seekTime / 60)
+  if (activeCheckpoint !== null) return
 
-        // Find first incomplete checkpoint before target
-        for (let m = 1; m <= targetMinute; m++) {
-            if (!checkpointsCompleted.includes(m)) {
-                triggerActivity(m)
-                return
-            }
-        }
-    },
+  const lastCompleted =
+    checkpointsCompleted.length > 0
+      ? Math.max(...checkpointsCompleted)
+      : 0
 
-    /** Called when activity completes */
-    handleActivityCompletion: () => {
-        const { completeActivity } = useVideoLearningStore.getState()
-        completeActivity()
-    },
+  const maxAllowedTime = (lastCompleted + 1) * 60
 
-    /** Pause video when app goes background */
-    initAppStateListener: () => {
-        AppState.addEventListener('change', (nextState) => {
-            if (appState.match(/active/) && nextState.match(/inactive|background/)) {
-                useVideoLearningStore.getState().setPlaying(false)
-            }
-            appState = nextState
-        })
-    },
+  // 🚫 Prevent skipping ahead
+  if (seekTime > maxAllowedTime) {
+    playerRef?.seek(maxAllowedTime)
+    return
+  }
 
-    /** Reset state when a new video starts */
-    resetForNewVideo: () => {
-        useVideoLearningStore.setState({
-            checkpointsCompleted: [],
-            activeCheckpoint: null,
-            showActivityModal: false,
-            currentTime: 0,
-            isPlaying: true,
-        })
-        lastKnownTime = 0
-    },
-}
+  updateTime(seekTime)
+
+  // If user jumped to an incomplete checkpoint, trigger it
+  const targetMinute = Math.floor(seekTime / 60)
+  if (!checkpointsCompleted.includes(targetMinute) && targetMinute > 0) {
+    const type = Math.random() > 0.5 ? 'quiz' : 'game'
+    triggerActivity(targetMinute, type)
+  }
+},
+
+
+  handleActivityCompletion: () => {
+    useVideoLearningStore.getState().completeActivity();
+  },
+
+  initAppStateListener: () => {
+    if (listenerInitialized) return;
+    listenerInitialized = true;
+
+    AppState.addEventListener('change', nextState => {
+      if (appState.match(/active/) && nextState.match(/inactive|background/)) {
+        useVideoLearningStore.getState().setPlaying(false);
+      }
+      appState = nextState;
+    });
+  },
+
+  resetForNewVideo: () => {
+    useVideoLearningStore.setState({
+      checkpointsCompleted: [],
+      activeCheckpoint: null,
+      showActivityModal: false,
+      currentTime: 0,
+      isPlaying: true,
+    });
+  },
+};

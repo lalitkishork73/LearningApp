@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+type ActivityType = 'quiz' | 'game' | null;
+
 type VideoLearningState = {
   isPlaying: boolean;
   duration: number;
@@ -7,15 +9,17 @@ type VideoLearningState = {
   checkpointsCompleted: number[];
   activeCheckpoint: number | null;
   showActivityModal: boolean;
+  activityType: ActivityType;
+
+  currentVideoId: string;
 
   setPlaying: (val: boolean) => void;
   updateTime: (time: number) => void;
-  triggerActivity: (minute: number) => void;
-  completeActivity: () => void;
   setDuration: (duration: number) => void;
-
-  currentVideoId: string;
   setCurrentVideo: (id: string) => void;
+
+  triggerActivity: (minute: number, type: ActivityType) => void;
+  completeActivity: () => void;
 };
 
 export const useVideoLearningStore = create<VideoLearningState>(set => ({
@@ -25,7 +29,7 @@ export const useVideoLearningStore = create<VideoLearningState>(set => ({
   checkpointsCompleted: [],
   activeCheckpoint: null,
   showActivityModal: false,
-
+  activityType: null,
   currentVideoId: '1',
 
   setCurrentVideo: id =>
@@ -40,14 +44,14 @@ export const useVideoLearningStore = create<VideoLearningState>(set => ({
 
   setPlaying: val => set({ isPlaying: val }),
   setDuration: duration => set({ duration }),
-
   updateTime: time => set({ currentTime: time }),
 
-  triggerActivity: minute =>
+  triggerActivity: (minute, type) =>
     set({
       isPlaying: false,
       activeCheckpoint: minute,
       showActivityModal: true,
+      activityType: type,
     }),
 
   completeActivity: () =>
@@ -57,6 +61,7 @@ export const useVideoLearningStore = create<VideoLearningState>(set => ({
         state.activeCheckpoint!,
       ],
       activeCheckpoint: null,
+      activityType: null,
       showActivityModal: false,
       isPlaying: true,
     })),

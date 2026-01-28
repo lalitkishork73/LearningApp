@@ -1,30 +1,19 @@
-
-
-import React, { useState } from 'react'
-import { Modal, View, Text, Button, StyleSheet } from 'react-native'
+import React from 'react'
+import { Modal, View, StyleSheet } from 'react-native'
 import { useVideoLearningStore } from '../store/videoLearningStore'
-import { videoController } from '../logic/videoLearningController'
+import QuizActivity from './QuizActivity'
+import GameActivity from './GameActivity'
 
 const ActivityModal = () => {
-    const { showActivityModal, activeCheckpoint } = useVideoLearningStore()
-    const [count, setCount] = useState(0)
+    const { showActivityModal, activityType } = useVideoLearningStore()
 
-    const handlePress = () => {
-        if (count >= 4) {
-            setCount(0)
-            videoController.handleActivityCompletion()
-        } else {
-            setCount((c) => c + 1)
-        }
-    }
+    if (!showActivityModal || !activityType) return null
 
     return (
-        <Modal visible={showActivityModal} transparent animationType="slide">
+        <Modal visible transparent animationType="fade">
             <View style={styles.overlay}>
-                <View style={styles.modal}>
-                    <Text style={styles.title}>Activity — Minute {activeCheckpoint}</Text>
-                    <Text>Tap button 5 times to continue</Text>
-                    <Button title={`Tap (${count}/5)`} onPress={handlePress} />
+                <View style={styles.card}>
+                    {activityType === 'quiz' ? <QuizActivity /> : <GameActivity />}
                 </View>
             </View>
         </Modal>
@@ -33,9 +22,18 @@ const ActivityModal = () => {
 
 export default ActivityModal
 
-
 const styles = StyleSheet.create({
-    overlay: { flex: 1, justifyContent: 'center', backgroundColor: '#00000099' },
-    modal: { backgroundColor: 'white', margin: 20, padding: 20, borderRadius: 10 },
-    title: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+    overlay: {
+        flex: 1,
+        backgroundColor: '#000000aa',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    card: {
+        width: '90%',
+        height: '70%',
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 16,
+    },
 })
