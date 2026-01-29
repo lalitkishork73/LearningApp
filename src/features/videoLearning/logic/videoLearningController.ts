@@ -1,64 +1,86 @@
 import { AppState } from 'react-native';
 import { useVideoLearningStore } from '../store/videoLearningStore';
+import { VIDEO_LIST } from '../data/mockData';
 
 let appState = AppState.currentState;
 let listenerInitialized = false;
+let lastSaved = 0;
 
 export const videoController = {
   handleProgress: (time: number) => {
     const {
-      checkpointsCompleted,
       activeCheckpoint,
       triggerActivity,
       updateTime,
       duration,
+      persistVideoProgress,
+      markVideoCompleted,
+      currentVideoId,
+      videoProgressMap,
+      checkpointsCompleted,
     } = useVideoLearningStore.getState();
 
     updateTime(time);
 
-    if (duration < 60 || activeCheckpoint !== null) return;
+    if (duration < 30) return;
 
-    const minute = Math.floor(time / 60);
+    if (
+      duration > 0 &&
+      time / duration >= 0.95 &&
+      !videoProgressMap[currentVideoId]?.completed
+    ) {
+      markVideoCompleted(currentVideoId);
+    }
 
-    if (minute > 0 && !checkpointsCompleted.includes(minute)) {
-      const type = Math.random() > 0.5 ? 'quiz' : 'game';
-      triggerActivity(minute, type);
+    if (Math.abs(time - lastSaved) >= 5) {
+      persistVideoProgress();
+      lastSaved = time;
+    }
+
+    if (activeCheckpoint !== null) return;
+
+    const video = VIDEO_LIST.find(v => v.id === currentVideoId);
+    if (!video?.activities?.length) return;
+
+    for (const activity of video.activities) {
+      const triggerSecond = activity.minute * 60;
+
+      if (
+        time >= triggerSecond &&
+        !checkpointsCompleted.includes(activity.minute)
+      ) {
+        triggerActivity(activity.minute);
+        return;
+      }
     }
   },
 
   handleSeek: (seekTime: number, playerRef?: any) => {
-  const {
-    checkpointsCompleted,
-    activeCheckpoint,
-    triggerActivity,
-    updateTime,
-  } = useVideoLearningStore.getState()
+    const {
+      checkpointsCompleted,
+      activeCheckpoint,
+      triggerActivity,
+      currentVideoId,
+    } = useVideoLearningStore.getState();
 
-  if (activeCheckpoint !== null) return
+    if (activeCheckpoint !== null) return;
 
-  const lastCompleted =
-    checkpointsCompleted.length > 0
-      ? Math.max(...checkpointsCompleted)
-      : 0
+    const video = VIDEO_LIST.find(v => v.id === currentVideoId);
+    if (!video?.activities?.length) return;
 
-  const maxAllowedTime = (lastCompleted + 1) * 60
+    for (const activity of video.activities) {
+      const triggerSecond = activity.minute * 60;
 
-  // 🚫 Prevent skipping ahead
-  if (seekTime > maxAllowedTime) {
-    playerRef?.seek(maxAllowedTime)
-    return
-  }
-
-  updateTime(seekTime)
-
-  // If user jumped to an incomplete checkpoint, trigger it
-  const targetMinute = Math.floor(seekTime / 60)
-  if (!checkpointsCompleted.includes(targetMinute) && targetMinute > 0) {
-    const type = Math.random() > 0.5 ? 'quiz' : 'game'
-    triggerActivity(targetMinute, type)
-  }
-},
-
+      if (
+        seekTime >= triggerSecond &&
+        !checkpointsCompleted.includes(activity.minute)
+      ) {
+        playerRef?.seek(triggerSecond);
+        triggerActivity(activity.minute);
+        return;
+      }
+    }
+  },
 
   handleActivityCompletion: () => {
     useVideoLearningStore.getState().completeActivity();

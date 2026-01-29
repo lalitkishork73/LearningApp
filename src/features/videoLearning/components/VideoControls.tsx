@@ -10,6 +10,7 @@ import {
 } from 'lucide-react-native';
 import { useVideoLearningStore } from '../store/videoLearningStore';
 import { videoController } from '../logic/videoLearningController';
+import { COLORS } from '../../../theme/colors'
 
 type Props = {
   onSeek: (time: number) => void;
@@ -48,9 +49,9 @@ const VideoControls: React.FC<Props> = ({ onSeek, onToggleFullscreen }) => {
           minimumValue={0}
           maximumValue={duration}
           value={currentTime}
-          minimumTrackTintColor="#fff"
-          maximumTrackTintColor="#555"
-          thumbTintColor="#fff"
+          minimumTrackTintColor={COLORS.textPrimary}
+          maximumTrackTintColor={COLORS.textSecondary}
+          thumbTintColor={COLORS.textPrimary}
           onSlidingComplete={handleSlidingComplete}
         />
 
@@ -67,7 +68,7 @@ const VideoControls: React.FC<Props> = ({ onSeek, onToggleFullscreen }) => {
                 styles.marker,
                 {
                   left: `${left}%`,
-                  backgroundColor: completed ? '#34C759' : '#FFD60A',
+                  backgroundColor: completed ? COLORS.success : COLORS.primary,
                 },
               ]}
             />
@@ -83,22 +84,22 @@ const VideoControls: React.FC<Props> = ({ onSeek, onToggleFullscreen }) => {
 
         <TouchableOpacity onPress={() => setPlaying(!isPlaying)}>
           {isPlaying ? (
-            <Pause color="white" size={16} />
+            <Pause color={COLORS.textPrimary} size={16} />
           ) : (
-            <Play color="white" size={16} />
+            <Play color={COLORS.textPrimary} size={16} />
           )}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => seekBy(-10)}>
-          <SkipBack color="white" size={16} />
+          <SkipBack color={COLORS.textPrimary} size={16} />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => seekBy(10)}>
-          <SkipForward color="white" size={16} />
+          <SkipForward color={COLORS.textPrimary} size={16} />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={onToggleFullscreen}>
-          <Maximize color="white" size={16} />
+          <Maximize color={COLORS.textPrimary} size={16} />
         </TouchableOpacity>
       </View>
     </View>
@@ -109,7 +110,7 @@ export default VideoControls;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#18016926',
+    backgroundColor: COLORS.background,
     paddingVertical: 10,
     paddingHorizontal: 12,
   },
@@ -130,5 +131,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 8,
   },
-  timeText: { color: 'white', fontSize: 12 },
+  timeText: { color: COLORS.textPrimary, fontSize: 12 },
 });

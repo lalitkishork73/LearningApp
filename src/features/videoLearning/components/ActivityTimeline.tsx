@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { useVideoLearningStore } from '../store/videoLearningStore'
+import { COLORS } from '../../../theme/colors'
 
 const ActivityTimeline = () => {
     const { duration, currentTime } = useVideoLearningStore()
@@ -28,20 +29,20 @@ export default ActivityTimeline
 const styles = StyleSheet.create({
     container: {
         height: 6,
-        backgroundColor: '#ccc',
+        backgroundColor: COLORS.border,
         width: '100%',
         position: 'absolute',
         bottom: 0,
     },
     progress: {
         height: '100%',
-        backgroundColor: '#4A90E2',
+        backgroundColor: COLORS.primary,
     },
     marker: {
         position: 'absolute',
         
         width: 3,
         height: '100%',
-        backgroundColor: '#fbea00ff',
+        backgroundColor: COLORS.primary,
     },
 })
