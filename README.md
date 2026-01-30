@@ -22,6 +22,15 @@ Modern learners lose focus with passive content. This app solves that by:
 
 * * * * *
 
+📱 APK Downloads
+----------------
+
+| Version | App Name | Download |
+| --- | --- | --- |
+| v1.0.0 | Interactive Learning App | <a href="https://raw.githubusercontent.com/lalitkishork73/HTML-games/main/app-release.apk">Download APK</a> |
+
+* * * * *
+
 🧩 Two Core Modules
 -------------------
 
@@ -265,12 +274,6 @@ npx react-native run-android`
 
 * * * * *
 
-📱 APK Downloads
-----------------
-
-| Version | App Name | Download |
-| --- | --- | --- |
-| v1.0.0 | Interactive Learning App | <a href="https://raw.githubusercontent.com/lalitkishork73/HTML-games/main/app-release.apk">Download APK</a> |
 
 * * * * *
 
