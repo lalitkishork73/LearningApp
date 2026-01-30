@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native'
 import { useVideoLearningStore } from '../store/videoLearningStore'
 import { COLORS } from '../../../theme/colors'
 import { CheckCircle2, XCircle } from 'lucide-react-native'
@@ -39,6 +39,9 @@ const QuizActivity = () => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
     const [score, setScore] = useState(0)
     const [showResult, setShowResult] = useState(false)
+    const { width, height } = useWindowDimensions()
+    const isLandscape = width > height
+
 
     const currentQuestion = QUESTIONS[currentIndex]
     const progressPercent = ((currentIndex + 1) / QUESTIONS.length) * 100
@@ -67,7 +70,7 @@ const QuizActivity = () => {
 
     if (showResult) {
         return (
-            <View style={styles.resultContainer}>
+            <ScrollView contentContainerStyle={styles.resultContainer}>
                 <Text style={styles.resultTitle}>Quiz Completed 🎉</Text>
                 <Text style={styles.scoreText}>
                     You scored {score} / {QUESTIONS.length}
@@ -76,60 +79,73 @@ const QuizActivity = () => {
                 <TouchableOpacity style={styles.primaryButton} onPress={handleFinish}>
                     <Text style={styles.primaryButtonText}>Continue Learning</Text>
                 </TouchableOpacity>
-            </View>
+            </ScrollView>
         )
     }
 
+
     return (
         <View style={styles.container}>
-            {/* Progress Bar */}
-            <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
-            </View>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    isLandscape && { paddingHorizontal: 40 }
+                ]}
+            >
+                {/* Progress Bar */}
+                <View style={styles.progressBarBg}>
+                    <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+                </View>
 
-            <Text style={styles.progressText}>
-                Question {currentIndex + 1} of {QUESTIONS.length}
-            </Text>
+                <Text style={styles.progressText}>
+                    Question {currentIndex + 1} of {QUESTIONS.length}
+                </Text>
 
-            <View style={styles.card}>
-                <Text style={styles.question}>{currentQuestion.question}</Text>
-
-                {currentQuestion.options.map((opt, index) => {
-                    const isSelected = selectedIndex === index
-                    const isCorrect = index === currentQuestion.answerIndex
-                    const isWrong = selectedIndex === index && !isCorrect
-
-                    return (
-                        <TouchableOpacity
-                            key={index}
-                            style={[
-                                styles.option,
-                                isSelected && styles.selectedOption,
-                                isCorrect && selectedIndex !== null && styles.correctOption,
-                                isWrong && styles.wrongOption,
-                            ]}
-                            onPress={() => handleOptionPress(index)}
-                        >
-                            <Text style={styles.optionText}>{opt}</Text>
-
-                            {selectedIndex !== null && isCorrect && (
-                                <CheckCircle2 size={18} color="#fff" />
-                            )}
-                            {isWrong && <XCircle size={18} color="#fff" />}
-                        </TouchableOpacity>
-                    )
-                })}
-            </View>
-
-            {selectedIndex !== null && (
-                <TouchableOpacity style={styles.primaryButton} onPress={handleNext}>
-                    <Text style={styles.primaryButtonText}>
-                        {currentIndex === QUESTIONS.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                <View style={styles.card}>
+                    <Text style={[styles.question, isLandscape && { fontSize: 16 }]}>
+                        {currentQuestion.question}
                     </Text>
-                </TouchableOpacity>
-            )}
+
+                    {currentQuestion.options.map((opt, index) => {
+                        const isSelected = selectedIndex === index
+                        const isCorrect = index === currentQuestion.answerIndex
+                        const isWrong = selectedIndex === index && !isCorrect
+
+                        return (
+                            <TouchableOpacity
+                                key={index}
+                                style={[
+                                    styles.option,
+                                    isSelected && styles.selectedOption,
+                                    isCorrect && selectedIndex !== null && styles.correctOption,
+                                    isWrong && styles.wrongOption,
+                                ]}
+                                onPress={() => handleOptionPress(index)}
+                                activeOpacity={0.85}
+                            >
+                                <Text style={styles.optionText}>{opt}</Text>
+
+                                {selectedIndex !== null && isCorrect && (
+                                    <CheckCircle2 size={18} color="#fff" />
+                                )}
+                                {isWrong && <XCircle size={18} color="#fff" />}
+                            </TouchableOpacity>
+                        )
+                    })}
+                </View>
+
+                {selectedIndex !== null && (
+                    <TouchableOpacity style={styles.primaryButton} onPress={handleNext}>
+                        <Text style={styles.primaryButtonText}>
+                            {currentIndex === QUESTIONS.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                        </Text>
+                    </TouchableOpacity>
+                )}
+            </ScrollView>
         </View>
     )
+
 }
 
 export default QuizActivity
@@ -244,4 +260,8 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         color: COLORS.textPrimary,
     },
+    scrollContent: {
+        paddingBottom: 30,
+    },
+
 })

@@ -17,6 +17,7 @@ const RootNavigator = () => {
         headerTitleAlign: 'center',
         headerStyle: { backgroundColor: COLORS.primary },
         headerTintColor: COLORS.background,
+        contentStyle: { backgroundColor: COLORS.background, flex: 1 },
       }}
     >
       <Stack.Screen

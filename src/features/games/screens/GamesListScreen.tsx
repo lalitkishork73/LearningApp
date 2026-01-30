@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import { SvgUri } from 'react-native-svg';
+import { SvgUri } from 'react-native-svg'
 import {
     View,
     Text,
@@ -8,7 +8,7 @@ import {
     ActivityIndicator,
     Alert,
     FlatList,
-    Image,
+    useWindowDimensions,
 } from 'react-native'
 import { GAMES } from '../data/mockData'
 import { useGamesStore } from '../store/gamesStore'
@@ -22,6 +22,8 @@ const GamesListScreen = () => {
     const downloadedGames = useGamesStore(state => state.downloadedGames)
     const downloading = useGamesStore(state => state.downloading)
 
+    const { height } = useWindowDimensions()
+
     const handleGamePress = useCallback(
         async (gameId: string, zipUrl: string, isDownloaded: boolean) => {
             try {
@@ -31,7 +33,10 @@ const GamesListScreen = () => {
                     await downloadGame(gameId, zipUrl)
                 }
             } catch {
-                Alert.alert('Download Failed', 'Please check your internet connection and try again.')
+                Alert.alert(
+                    'Download Failed',
+                    'Please check your internet connection and try again.'
+                )
             }
         },
         [navigation]
@@ -43,30 +48,30 @@ const GamesListScreen = () => {
 
         return (
             <View style={styles.card}>
-                {/* Left: Game Icon */}
+                {/* Game Icon */}
                 <View style={styles.iconWrapper}>
                     <SvgUri
                         width="70"
                         height="70"
                         uri="https://www.svgrepo.com/show/503859/game.svg"
-                        style={styles.icon}
                     />
                 </View>
 
-                {/* Middle: Game Info */}
+                {/* Info */}
                 <View style={styles.info}>
-                    <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
+                    <Text style={styles.title} numberOfLines={1}>
+                        {item.title}
+                    </Text>
                     <Text style={styles.subtitle}>
                         {isDownloaded ? 'Available Offline' : 'Requires Download'}
                     </Text>
                 </View>
 
-                {/* Right: Action Button */}
+                {/* Action Button */}
                 <TouchableOpacity
                     style={[
                         styles.actionButton,
                         isDownloaded ? styles.playButton : styles.downloadButton,
-                        isLoading && { opacity: 1 }
                     ]}
                     onPress={() => handleGamePress(item.id, item.zipUrl, isDownloaded)}
                     disabled={isLoading}
@@ -90,30 +95,40 @@ const GamesListScreen = () => {
     }
 
     return (
-        <FlatList
-            data={GAMES}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            contentContainerStyle={styles.container}
-            showsVerticalScrollIndicator={false}
-        />
+        <View style={styles.screen}>
+            <FlatList
+                data={GAMES}
+                keyExtractor={(item) => item.id}
+                renderItem={renderItem}
+                showsVerticalScrollIndicator={false}
+                removeClippedSubviews={false}
+                contentContainerStyle={[
+                    styles.contentContainer,
+                    { minHeight: height }, // 🔥 Fix scroll issue after rotation
+                ]}
+            />
+        </View>
     )
 }
 
 export default GamesListScreen
 
-
 const styles = StyleSheet.create({
-    container: {
-        padding: 16,
+    screen: {
+        flex: 1,
         backgroundColor: COLORS.background,
-        height: '100%',
+    },
+
+    contentContainer: {
+        padding: 16,
+        paddingBottom: 40,
+        flexGrow: 1, // 🔥 Important for rotation scroll fix
     },
 
     card: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.background,
+        backgroundColor: COLORS.card,
         padding: 12,
         borderRadius: 14,
         marginBottom: 14,
@@ -131,12 +146,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         marginRight: 12,
         backgroundColor: COLORS.background,
-    },
-
-    icon: {
-        width: '100%',
-        height: '100%',
-        resizeMode: 'cover',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 
     info: {
@@ -169,11 +180,11 @@ const styles = StyleSheet.create({
     },
 
     playButton: {
-        backgroundColor: COLORS.primary, // green for play
+        backgroundColor: COLORS.success,
     },
 
     actionText: {
-        color: COLORS.textPrimary,
+        color: '#fff',
         fontWeight: '600',
         marginLeft: 6,
     },

@@ -5,7 +5,7 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Image,
+  ScrollView,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../app/navigation/types';
@@ -19,6 +19,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'VideoTopics'>;
 
 const VideoTopicsScreen = ({ navigation }: Props) => {
   const videoProgressMap = useVideoLearningStore(s => s.videoProgressMap);
+  const setCurrentVideo = useVideoLearningStore(s => s.setCurrentVideo);
 
   React.useEffect(() => {
     useVideoLearningStore.getState().loadAllVideoProgress();
@@ -30,11 +31,17 @@ const VideoTopicsScreen = ({ navigation }: Props) => {
     const percent = durationSec ? progress / durationSec : 0;
     const isCompleted = videoProgressMap[item.id]?.completed;
 
+    const handleOnPress = () => {
+      navigation.navigate('VideoPlayer', { topicId: item.id });
+      setCurrentVideo(item.id);
+    };
+
+
     return (
       <TouchableOpacity
         style={styles.card}
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('VideoPlayer', { topicId: item.id })}
+        onPress={handleOnPress}
       >
         {/* Thumbnail */}
         <View style={styles.thumbnail}>
@@ -48,9 +55,7 @@ const VideoTopicsScreen = ({ navigation }: Props) => {
 
         {/* Info Section */}
         <View style={styles.info}>
-          <Text style={styles.title} numberOfLines={2}>
-            {item.title}
-          </Text>
+          <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
 
           <Text style={styles.meta}>
             {durationSec
@@ -93,6 +98,7 @@ const VideoTopicsScreen = ({ navigation }: Props) => {
       <Text style={styles.header}>Your Learning Topics</Text>
 
       <FlatList
+        style={{ flex: 1 }}
         data={VIDEO_LIST}
         keyExtractor={item => item.id}
         renderItem={renderItem}

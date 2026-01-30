@@ -1,75 +1,94 @@
-import React from 'react'
-import { Modal, View, StyleSheet, Text, TouchableOpacity } from 'react-native'
+import React, { useEffect } from 'react'
+import {
+    Modal,
+    View,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useWindowDimensions,
+    ScrollView,
+    BackHandler,
+} from 'react-native'
 import { useVideoLearningStore } from '../store/videoLearningStore'
 import QuizActivity from './QuizActivity'
 import GameActivity from './GameActivity'
 import FunActivity from './FunActivity'
+import ActivityMenu from './ActivityMenu'
 import { COLORS } from '../../../theme/colors'
-import { Brain, Gamepad2, Sparkles, Play } from 'lucide-react-native'
 
 const ActivityModal = () => {
-    const {
-        showActivityModal,
-        activityMode,
-        setActivityMode,
-        completeActivity,
-    } = useVideoLearningStore()
+    const { showActivityModal, activityMode, setActivityMode, completeActivity } =
+        useVideoLearningStore()
+
+    const { width, height } = useWindowDimensions()
+    const isLandscape = width > height
+
+    const goBackToMenu = () => setActivityMode('menu')
+
+    useEffect(() => {
+        const onBackPress = () => {
+            if (activityMode !== 'menu') {
+                setActivityMode('menu')
+                return true
+            }
+            return false
+        }
+
+        const subscription = BackHandler.addEventListener(
+            'hardwareBackPress',
+            onBackPress
+        )
+        return () => subscription.remove()
+    }, [activityMode])
 
     if (!showActivityModal) return null
 
     return (
-        <Modal visible transparent animationType="fade">
+        <Modal
+            visible={showActivityModal}
+            transparent
+            animationType="fade"
+            presentationStyle="overFullScreen"
+            statusBarTranslucent
+        >
             <View style={styles.overlay}>
-                <View style={styles.card}>
-
-                    {activityMode === 'menu' && (
-                        <>
-                            <Text style={styles.title}>Choice Time!</Text>
-                            <Text style={styles.subTitle}>Take a quick break or continue learning</Text>
-
-                            <View style={styles.grid}>
-                                <Option
-                                    label="Quick Quiz"
-                                    icon={<Brain size={26} color={COLORS.primary} />}
-                                    onPress={() => setActivityMode('quiz')}
-                                />
-                                <Option
-                                    label="Practice Game"
-                                    icon={<Gamepad2 size={26} color="#22C55E" />}
-                                    onPress={() => setActivityMode('game')}
-                                />
-                                <Option
-                                    label="Fun Activity"
-                                    icon={<Sparkles size={26} color="#F59E0B" />}
-                                    onPress={() => setActivityMode('fun')}
-                                />
-                                <Option
-                                    label="Keep Watching"
-                                    icon={<Play size={26} color="#6366F1" />}
-                                    onPress={completeActivity}
-                                />
-                            </View>
-                        </>
+                <View
+                    style={[
+                        styles.card,
+                        isLandscape ? styles.cardLandscape : styles.cardPortrait,
+                    ]}
+                >
+                    {activityMode !== 'menu' && (
+                        <View style={styles.headerRow}>
+                            <TouchableOpacity onPress={goBackToMenu} style={styles.backBtn}>
+                                <Text style={styles.backText}>← Back</Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
 
-                    {activityMode === 'quiz' && <QuizActivity />}
-                    {activityMode === 'game' && <GameActivity />}
-                    {activityMode === 'fun' && <FunActivity />}
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingBottom: 10 }}
+                        style={{ flex: 1 }}
+                    >
+                        {activityMode === 'menu' && (
+                            <ActivityMenu
+                                setActivityMode={setActivityMode}
+                                completeActivity={completeActivity}
+                            />
+                        )}
 
+                        {activityMode === 'quiz' && <QuizActivity />}
+                        {activityMode === 'game' && <GameActivity />}
+                        {activityMode === 'fun' && <FunActivity />}
+                    </ScrollView>
                 </View>
             </View>
         </Modal>
     )
 }
 
-const Option = ({ label, icon, onPress }: any) => (
-    <TouchableOpacity style={styles.option} onPress={onPress} activeOpacity={0.85}>
-        <View style={styles.iconWrap}>{icon}</View>
-        <Text style={styles.optionText}>{label}</Text>
-    </TouchableOpacity>
-)
-
-export default ActivityModal
+export default React.memo(ActivityModal)
 
 const styles = StyleSheet.create({
     overlay: {
@@ -80,8 +99,6 @@ const styles = StyleSheet.create({
     },
 
     card: {
-        width: '90%',
-        height: '60%',
         backgroundColor: COLORS.background,
         borderRadius: 20,
         padding: 20,
@@ -92,50 +109,32 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 5 },
     },
 
-    title: {
-        fontSize: 22,
-        fontWeight: '700',
-        textAlign: 'center',
-        color: COLORS.textPrimary,
+    cardPortrait: {
+        width: '100%',
+        height: '100%',
     },
 
-    subTitle: {
-        fontSize: 13,
-        color: COLORS.textSecondary,
-        textAlign: 'center',
-        marginTop: 6,
-        marginBottom: 20,
+    cardLandscape: {
+        width: '90%',
+        height: '95%',
     },
 
-    grid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
+    headerRow: {
+        width: '100%',
+        marginBottom: 10,
     },
 
-    option: {
-        width: '48%',
-        backgroundColor: COLORS.card,
-        borderRadius: 16,
-        paddingVertical: 18,
+    backBtn: {
+        alignSelf: 'flex-start',
+        paddingVertical: 6,
         paddingHorizontal: 10,
-        alignItems: 'center',
-        marginBottom: 14,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOpacity: 0.12,
-        shadowRadius: 6,
-        shadowOffset: { width: 0, height: 3 },
+        borderRadius: 8,
+        backgroundColor: COLORS.card,
     },
 
-    iconWrap: {
-        marginBottom: 8,
-    },
-
-    optionText: {
+    backText: {
         fontSize: 14,
         fontWeight: '600',
-        color: COLORS.textPrimary,
-        textAlign: 'center',
+        color: COLORS.primary,
     },
 })

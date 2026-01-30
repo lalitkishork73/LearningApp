@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { useVideoLearningStore } from '../store/videoLearningStore'
 import { COLORS } from '../../../theme/colors'
+import { useWindowDimensions } from 'react-native'
+
 
 const emojis = ['🍎', '🚗', '🐶', '⚽', '🌟', '🎵']
 
@@ -11,9 +13,18 @@ const shuffle = (arr: string[]) =>
 const FunActivity = () => {
     const { completeActivity } = useVideoLearningStore()
 
+    const { width, height } = useWindowDimensions()
+    const isLandscape = width > height
+
     const [cards, setCards] = useState<string[]>(shuffle(emojis))
     const [flipped, setFlipped] = useState<number[]>([])
     const [matched, setMatched] = useState<number[]>([])
+
+
+    const numColumns = isLandscape ? 4 : 3
+    const spacing = 12
+    const totalSpacing = spacing * (numColumns - 1)
+    const cardSize = (width * 0.9 - totalSpacing) / numColumns
 
     useEffect(() => {
         if (matched.length === cards.length && cards.length > 0) {
@@ -38,24 +49,35 @@ const FunActivity = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>🧠 Memory Match</Text>
-            <Text style={styles.subtitle}>Find all matching pairs</Text>
+            <Text style={[styles.title, { fontSize: isLandscape ? 18 : 22 }]}>🧠 Memory Match</Text>
+            <Text style={[styles.subtitle, { fontSize: isLandscape ? 12 : 16 }]}>Find all matching pairs</Text>
 
-            <View style={styles.grid}>
+            <View style={[styles.grid, { width: width * 0.9 }]}>
                 {cards.map((emoji, index) => {
                     const isOpen = flipped.includes(index) || matched.includes(index)
 
                     return (
                         <TouchableOpacity
                             key={index}
-                            style={[styles.card, matched.includes(index) && styles.matched]}
+                            style={[
+                                styles.card,
+                                {
+                                    width: cardSize,
+                                    height: cardSize,
+                                    marginBottom: spacing,
+                                },
+                                matched.includes(index) && styles.matched,
+                            ]}
                             onPress={() => handlePress(index)}
                         >
-                            <Text style={styles.cardText}>{isOpen ? emoji : '❓'}</Text>
+                            <Text style={[styles.cardText, { fontSize: cardSize * 0.35 }]}>
+                                {isOpen ? emoji : '❓'}
+                            </Text>
                         </TouchableOpacity>
                     )
                 })}
             </View>
+
         </View>
     )
 }
@@ -63,7 +85,7 @@ const FunActivity = () => {
 export default FunActivity
 
 const styles = StyleSheet.create({
-    container: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    container: { flex: 1, alignItems: 'center', justifyContent: 'center',padding:20 },
     title: { fontSize: 22, fontWeight: 'bold', marginBottom: 6 },
     subtitle: { fontSize: 14, color: '#666', marginBottom: 20 },
     grid: {

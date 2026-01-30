@@ -8,6 +8,7 @@ let lastSaved = 0;
 
 export const videoController = {
   handleProgress: (time: number) => {
+    const store = useVideoLearningStore.getState();
     const {
       activeCheckpoint,
       triggerActivity,
@@ -18,9 +19,12 @@ export const videoController = {
       currentVideoId,
       videoProgressMap,
       checkpointsCompleted,
-    } = useVideoLearningStore.getState();
+    } = store;
 
-    updateTime(time);
+    // 🔒 Throttle UI time updates (only once per second)
+    if (Math.abs(time - lastSaved) >= 1) {
+      updateTime(time);
+    }
 
     if (duration < 30) return;
 
@@ -32,6 +36,7 @@ export const videoController = {
       markVideoCompleted(currentVideoId);
     }
 
+    // 💾 Persist progress every 5 seconds
     if (Math.abs(time - lastSaved) >= 5) {
       persistVideoProgress();
       lastSaved = time;
