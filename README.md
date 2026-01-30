@@ -270,7 +270,7 @@ npx react-native run-android`
 
 | Version | App Name | Download |
 | --- | --- | --- |
-| v1.0.0 | Interactive Learning App | <a href="">Download APK</a> |
+| v1.0.0 | Interactive Learning App | <a href="https://raw.githubusercontent.com/lalitkishork73/HTML-games/main/app-release.apk">Download APK</a> |
 
 * * * * *
 
